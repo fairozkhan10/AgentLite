@@ -4,10 +4,18 @@ agentlite.logging module
 Submodules
 ----------
 
-agentlite.logging.multi\_agent\_log module
-------------------------------------------
+agentlite.logging.terminal\_logger module
+-----------------------------------------
 
-.. automodule:: agentlite.logging.multi_agent_log
+.. automodule:: agentlite.logging.terminal_logger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+agentlite.logging.base module
+-----------------------------
+
+.. automodule:: agentlite.logging.base
    :members:
    :undoc-members:
    :show-inheritance:
