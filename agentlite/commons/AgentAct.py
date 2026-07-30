@@ -13,6 +13,10 @@ class AgentAct(BaseModel):
     name: str
     desc: str = None
     params: dict = None
+    #: True when the LLM output could not be parsed into an action. The agent
+    #: turns this into a corrective observation instead of executing anything,
+    #: giving the model a chance to re-emit the step in the expected format.
+    parse_failed: bool = False
 
 
 ActObsChainType = list[tuple[AgentAct, str]]

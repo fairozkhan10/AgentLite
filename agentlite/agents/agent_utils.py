@@ -50,6 +50,14 @@ AGENT_CALL_ARG_KEY = "Task"
 NO_TEAM_MEMEBER_MESS = (
     """No team member for manager agent. Please check your manager agent team."""
 )
-ACION_NOT_FOUND_MESS = (
-    """"This is the wrong action to call. Please check your available action list."""
+ACTION_NOT_FOUND_MESS = (
+    """This is the wrong action to call. Please check your available action list."""
+)
+# Kept so existing imports of the misspelled name keep working.
+ACION_NOT_FOUND_MESS = ACTION_NOT_FOUND_MESS
+
+PARSE_FAILED_MESS = (
+    """Your output could not be parsed as an action. An action must be written on a """
+    """single line as ActionName[{"arg": "value"}], where the bracketed part is valid """
+    """JSON. Please re-emit your last step in exactly that format."""
 )

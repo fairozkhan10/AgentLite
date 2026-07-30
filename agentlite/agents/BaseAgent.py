@@ -215,8 +215,10 @@ class BaseAgent(ABCAgent):
         """
 
         action_name, args, PARSE_FLAG = parse_action(raw_action)
-        agent_act = AgentAct(name=action_name, params=args)
-        return agent_act
+        # parse_action returns the raw text as `action_name` when it fails. Without
+        # carrying the flag through, that raw text became an action name and the
+        # failure was indistinguishable from the model naming an unknown action.
+        return AgentAct(name=action_name, params=args, parse_failed=not PARSE_FLAG)
 
     def forward(self, task: TaskPackage, agent_act: AgentAct) -> str:
         """
@@ -229,8 +231,11 @@ class BaseAgent(ABCAgent):
         :return: observation
         :rtype: str
         """
+        if agent_act.parse_failed:
+            return PARSE_FAILED_MESS
+
         act_found_flag = False
-        
+
         # if match one in self.actions
         for action in self.actions:
             if act_match(agent_act.name, action):

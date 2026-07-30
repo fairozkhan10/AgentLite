@@ -124,17 +124,15 @@ class ManagerAgent(BaseAgent):
         """
 
         action_name, args, PARSE_FLAG = parse_action(raw_action)
-        # if action_name match a labor_agent
-        if self.team:
-            for agent in self.team:
-                if self.agent_match(action_name, agent):
-                    agent_act = AgentAct(name=action_name, params=args)
-
-        # if action_name is action
-        for action in self.actions:
-            if act_match(action_name, action):
-                agent_act = AgentAct(name=action_name, params=args)
-        return agent_act
+        # Bind up front. Previously `agent_act` was assigned only inside the match
+        # branches, so any output that matched neither a labor agent nor an action
+        # -- which is every unparseable generation -- raised UnboundLocalError out
+        # of the agent loop instead of being handled.
+        # The two match loops that used to follow rebuilt an identical AgentAct on
+        # a hit and left `agent_act` unbound on a miss, so they only ever decided
+        # between "same object" and "crash". Dispatch against the team and the
+        # action space already happens in forward(); the parser just builds the act.
+        return AgentAct(name=action_name, params=args, parse_failed=not PARSE_FLAG)
 
     def forward(self, task: TaskPackage, agent_act: AgentAct) -> str:
         """forward the action to get the observation or response from other agent
@@ -146,6 +144,9 @@ class ManagerAgent(BaseAgent):
         :return: the observation or response from other agent
         :rtype: str
         """
+        if agent_act.parse_failed:
+            return PARSE_FAILED_MESS
+
         act_found_flag = False
         # if action is labor agent call
         for agent in self.team:
