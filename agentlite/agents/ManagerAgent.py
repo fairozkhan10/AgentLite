@@ -23,7 +23,7 @@ class ManagerAgent(BaseAgent):
         constraint: str = DEFAULT_PROMPT["constraint"],
         instruction: str = DEFAULT_PROMPT["manager_instruction"],
         reasoning_type: str = "react",
-        TeamAgents: List[ABCAgent] = [],
+        TeamAgents: List[ABCAgent] = None,
         logger: AgentLogger = DefaultLogger,
         **kwargs
     ):
@@ -58,7 +58,9 @@ class ManagerAgent(BaseAgent):
             reasoning_type=reasoning_type,
             logger=logger,
         )
-        self.team = TeamAgents
+        # Copy: add_member() appends in place, so sharing the caller's list --
+        # or the single mutable default -- leaks members between managers.
+        self.team = list(TeamAgents) if TeamAgents else []
         self.prompt_gen = ManagerPromptGen(
             agent_role=self.role,
             constraint=self.constraint,

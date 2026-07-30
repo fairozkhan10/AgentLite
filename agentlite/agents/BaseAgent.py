@@ -46,7 +46,7 @@ class BaseAgent(ABCAgent):
         name: str,
         role: str,
         llm: BaseLLM,
-        actions: List[BaseAction] = [],
+        actions: List[BaseAction] = None,
         constraint: str = DEFAULT_PROMPT["constraint"],
         instruction: str = DEFAULT_PROMPT["agent_instruction"],
         reasoning_type: str = "react",
@@ -57,7 +57,10 @@ class BaseAgent(ABCAgent):
         self.name = name  # short description for agent, use it for id part
         self.role = role  # describe the job duty of this agent
         self.llm = llm
-        self.actions = actions
+        # Copy: __add_inner_actions__ appends in place, so keeping the caller's
+        # list would mutate it and leak inner actions into every other agent
+        # constructed from the same list.
+        self.actions = list(actions) if actions else []
         self.max_exec_steps = 20
         self.task_pool = []
         self.constraint = constraint
@@ -99,7 +102,10 @@ class BaseAgent(ABCAgent):
             # check if a finish action is in the action space
             if not self.__check_action__(FinishAct.action_name):
                 Warning("Finish action is not in the action space.\n Should add an action with BaseAction.action_name==\"Finish\".")
-        self.actions = list(set(self.actions))
+        # dict.fromkeys rather than set(): same de-duplication, but stable order.
+        # set() orders by object hash, so the action list -- and therefore the
+        # generated prompt -- came out in a different order on every run.
+        self.actions = list(dict.fromkeys(self.actions))
 
     def __call__(self, task: TaskPackage) -> str:
         """agent can be called with a task. it will assign the task and then execute and respond
