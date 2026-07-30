@@ -7,7 +7,7 @@ def get_requires():
         lines = [
             line.strip()
             for line in file_content.strip().split("\n")
-            if not line.startswith("#")
+            if line.strip() and not line.strip().startswith("#")
         ]
         return lines
 
