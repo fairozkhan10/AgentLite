@@ -67,7 +67,11 @@ def format_agent_call_example(agents_doc: dict[str, str]):
 
 def action_format(act: AgentAct, action_trigger: bool = True) -> str:
     """unified format the action as a string"""
-    str_params = json.dumps(act.params)
+    # ensure_ascii=False: this string goes into the prompt. json.dumps escapes
+    # non-ASCII by default, so CJK text came back to the model as a run of
+    # backslash-u escape sequences rather than the characters it just wrote.
+    # That burns context and degrades non-English generation (issue #8).
+    str_params = json.dumps(act.params, ensure_ascii=False)
     if action_trigger:
         act_str = f"""Action:{act.name}[{str_params}]"""
     # w/o Action trigger

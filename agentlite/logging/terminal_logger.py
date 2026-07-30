@@ -37,7 +37,10 @@ class AgentLogger(BaseAgentLogger):
     def __save_log__(self, log_str: str):
         if self.FLAG_PRINT:
             print(log_str)
-        with open(self.log_file_name, "a") as f:
+        # encoding="utf-8": without it Python uses the platform default, which
+        # is cp936 on a Chinese Windows install and raises UnicodeEncodeError on
+        # anything outside that codepage (issue #8).
+        with open(self.log_file_name, "a", encoding="utf-8") as f:
             f.write(str_color_remove(log_str) + "\n")
 
     def receive_task(self, task: TaskPackage, agent_name: str):
