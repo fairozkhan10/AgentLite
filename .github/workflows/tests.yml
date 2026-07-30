@@ -1,0 +1,91 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: unit tests (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          # These two pins are what fix/install-deps adds to requirements.txt.
+          # They are applied here as well so this workflow runs on branches that
+          # do not carry that fix. openai==1.10 passes proxies= to httpx.Client,
+          # removed in httpx 0.28; duckduckgo-search 6.1.0 resolves to a
+          # pyreqwest_impersonate with no wheel on some platforms.
+          pip install "httpx<0.28" "pyreqwest-impersonate==0.4.7"
+          pip install -e .
+
+      - name: Collect offline test modules
+        id: collect
+        run: |
+          # test_llm.py is excluded: it calls a live model and needs a paid key.
+          mods=$(ls tests/test_*.py 2>/dev/null \
+                 | grep -v test_llm \
+                 | sed 's|/|.|g; s|\.py$||' \
+                 | tr '\n' ' ')
+          echo "modules=tests.agent.agent_utils $mods" >> "$GITHUB_OUTPUT"
+          echo "Running: tests.agent.agent_utils $mods"
+
+      - name: Run tests
+        run: python -m unittest ${{ steps.collect.outputs.modules }} -v
+
+  verify-all-branches:
+    name: verify ${{ matrix.branch }}
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - fix/install-deps
+          - fix/taskpackage-mutable-defaults
+          - fix/manager-agent-parse-crash
+          - fix/missing-multi-agent-log
+          - feat/action-retry-backoff
+          - feat/structured-json-logging
+          - fix/chinese-encoding
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ matrix.branch }}
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install "httpx<0.28" "pyreqwest-impersonate==0.4.7"
+          pip install -e .
+
+      - name: Run this branch's tests
+        run: |
+          mods=$(ls tests/test_*.py 2>/dev/null \
+                 | grep -v test_llm \
+                 | sed 's|/|.|g; s|\.py$||' \
+                 | tr '\n' ' ')
+          python -m unittest tests.agent.agent_utils $mods -v
+
+      - name: Byte-compile every source tree
+        run: python -m compileall -q agentlite/ tests/

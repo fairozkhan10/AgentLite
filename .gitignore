@@ -3,8 +3,9 @@ node_modules/
 # Project
 /.vs
 .vscode
-# test
-*test*
+# NOTE: this was `*test*`, which matches any path containing "test" -- the
+# tests/ package and a tests.yml workflow included. Neither could be committed
+# without `git add -f`. Runner and coverage artifacts are ignored further down.
 
 # Log files
 *.log
