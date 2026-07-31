@@ -21,19 +21,19 @@ The work is split across eight branches, one per proposed change, each based on
 | `fix/manager-agent-parse-crash` | `UnboundLocalError` on unparseable model output; parse failures indistinguishable from unknown actions | [#17](https://github.com/SalesforceAIResearch/AgentLite/issues/17) | 10 |
 | `fix/missing-multi-agent-log` | Every tutorial fails on its first cell | [#36](https://github.com/SalesforceAIResearch/AgentLite/issues/36) | 4 |
 | `feat/action-retry-backoff` | A single transient network error ends the run | [#29](https://github.com/SalesforceAIResearch/AgentLite/issues/29), [#19](https://github.com/SalesforceAIResearch/AgentLite/issues/19) | 17 |
-| `feat/structured-json-logging` | Logs are prose; agent runs cannot be analysed as data | — | 23 |
+| `feat/structured-json-logging` | Logs are prose; agent runs cannot be analysed as data | — | 25 |
 | `fix/chinese-encoding` | Non-ASCII is escaped back into the prompt | [#8](https://github.com/SalesforceAIResearch/AgentLite/issues/8) | 7 |
 | `ci/github-actions` | No CI exists | — | — |
 
-**79 new tests**, all offline, all under stdlib `unittest` to match the existing
+**81 new tests**, all offline, all under stdlib `unittest` to match the existing
 tests and add no test dependency.
 
 Verified on GitHub Actions across Python 3.10 / 3.11 / 3.12, with every branch
 checked out and run in turn:
-[run #30580156054](https://github.com/fairozkhan10/AgentLite/actions/runs/30580156054) — 10/10 jobs green.
+[run #30611975286](https://github.com/fairozkhan10/AgentLite/actions/runs/30611975286) — 10/10 jobs green.
 
 The branches are independent and apply in any order. Merging all eight in
-sequence produces no conflicts, and the combined suite — 80 tests — passes with
+sequence produces no conflicts, and the combined suite — 82 tests — passes with
 every change stacked together.
 
 ---
@@ -257,6 +257,28 @@ plausible explanation for why the test suite never grew.
   `feat/action-retry-backoff`. No change proposed.
 - **Benchmarks** were not run: they require dataset downloads and paid API
   calls.
+
+---
+
+## Limits of this review
+
+Stated plainly, because the above is not a clean bill of health:
+
+- **Nothing was verified against a live model or a live endpoint.** Every test
+  here is offline by design, which is what makes them runnable in CI, but it
+  means the network-facing changes are the least proven: the DuckDuckGo and
+  Wikipedia paths in `feat/action-retry-backoff` are exercised against fakes,
+  not against the real services.
+- **The `.chat()` → `.text()` switch is the most opinionated change in the
+  set.** The evidence that `.chat()` is wrong is strong — it is DuckDuckGo's LLM
+  endpoint, in an action named `DuckDuckGo_Search` — but it changes what the
+  example returns, and a maintainer may have intended it.
+- The review followed the open issues and the modules they touch. Findings 2 and
+  the ordering defect were found independently; the rest started from a report.
+  This was not a systematic pass over the whole library.
+- `feat/structured-json-logging` adds a capability rather than fixing a defect.
+  It is included because agent traces being unanalysable as data is a real
+  limitation, but it is the one branch that is not a bug fix.
 
 ---
 

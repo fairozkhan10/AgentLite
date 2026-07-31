@@ -22,13 +22,13 @@ what each fix does.**
 | [`fix/chinese-encoding`](../../tree/fix/chinese-encoding) | Non-ASCII is escaped back into the prompt | [#8](https://github.com/SalesforceAIResearch/AgentLite/issues/8) |
 | [`ci/github-actions`](../../tree/ci/github-actions) | No CI exists | — |
 
-79 new tests, all offline — no API key, no network, no model calls. Verified on
+81 new tests, all offline — no API key, no network, no model calls. Verified on
 GitHub Actions across Python 3.10, 3.11 and 3.12, with every branch checked out
-and run in turn: [run #30580156054](../../actions/runs/30580156054), 10/10 jobs
+and run in turn: [run #30611975286](../../actions/runs/30611975286), 10/10 jobs
 green.
 
 The branches are independent and apply in any order. Merging all of them in
-sequence produces no conflicts, and the combined suite — 80 tests — passes with
+sequence produces no conflicts, and the combined suite — 82 tests — passes with
 every change stacked together.
 
 No pull requests have been opened upstream and nothing has been posted to the
