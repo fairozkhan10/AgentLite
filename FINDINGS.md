@@ -99,9 +99,19 @@ after agent2: ['Noop', 'Think', 'Finish', 'Finish']
 
 The second agent receives `ThinkAct` despite `reasoning_type="act"`.
 
-**`ManagerAgent(TeamAgents=[])` has the same defect**, and `add_member()`
-appends to it. Construct a manager, add one member, construct a second manager
-with no team — the second already has the first one's member.
+**`ManagerAgent` has the same defect.** Its `TeamAgents` parameter defaults to
+`[]` (`ManagerAgent.py:26`) and is assigned straight to `self.team`, which
+`add_member()` appends to — so every manager constructed without an explicit
+team shares one list object:
+
+```
+>>> m1, m2 = ManagerAgent(...), ManagerAgent(...)
+>>> m1.add_member(a1)
+>>> [x.name for x in m2.team]
+['a1']
+>>> m1.team is m2.team
+True
+```
 
 **Action order was nondeterministic across processes.**
 `list(set(self.actions))` de-duplicates by object hash, i.e. by `id()`. Running
